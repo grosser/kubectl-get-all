@@ -26,13 +26,13 @@ kubectl get-all -n foo'
 ## Option A: via `krew`
 
 ```bash
-kubectl krew install --manifest-url https://raw.githubusercontent.com/grosser/kubectl-get-all/main/krew.yaml
+kubectl krew install --manifest-url https://raw.githubusercontent.com/grosser/kubectl-get-all/master/krew.yaml
 ```
 
 ## Option B: copy into your /usr/local/bin folder
 
 ```bash
-sudo wget https://raw.githubusercontent.com/grosser/kubectl-get-all/main/kubectl-get-all -O /usr/local/bin/kubectl-get_all
+sudo wget https://raw.githubusercontent.com/grosser/kubectl-get-all/master/kubectl-get-all -O /usr/local/bin/kubectl-get_all
 sudo chmod +x /usr/local/bin/kubectl-get_all
 ```
 
@@ -56,7 +56,7 @@ cd kubectl-get-all && ./kubectl-get-all
 - update `krew.yaml` with new url, tag, and sha
 - commit and push
 - remove old: `kubectl krew remove get-all`
-- test install new: `kubectl krew install --manifest-url https://raw.githubusercontent.com/grosser/kubectl-get-all/main/krew.yaml`
+- test install new: `kubectl krew install --manifest-url https://raw.githubusercontent.com/grosser/kubectl-get-all/master/krew.yaml`
 
 # TODO
 
