@@ -4,13 +4,13 @@ kind: Plugin
 metadata:
   name: "get-all"
 spec:
-  version: "v0.0.0"
+  version: "v0.0.1"
   homepage: https://github.com/grosser/kubectl-get-all
   shortDescription: Use kubectl to get really all items in the cluster or in a namespace
   description: Use kubectl to get really all items in the cluster or in a namespace
   platforms:
-  - uri: https://github.com/grosser/kubectl-get-all/archive/refs/tags/v0.0.0.zip
-    sha256: b64cd5b25790c3862d72cba0bf6c14e371d342471850ae3f107f49fa7b568d63
+  - uri: https://github.com/grosser/kubectl-get-all/archive/refs/tags/v0.0.1.zip
+    sha256: 41338e1793a350f04e7165f497429fe65d6cc2c0d8f56c8ac0cce4a9d38b6dc7
     # works for all platforms, workaround for https://github.com/kubernetes-sigs/krew/issues/847
     selector:
       matchExpressions:
