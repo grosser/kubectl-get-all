@@ -1,0 +1,21 @@
+# krew plugin manifest, used to install with `krew`
+apiVersion: krew.googlecontainertools.github.com/v1alpha2
+kind: Plugin
+metadata:
+  name: "get-all"
+spec:
+  version: "v0.0.0"
+  homepage: https://github.com/grosser/kubectl-get-all
+  shortDescription: Use kubectl to get really all items in the cluster or in a namespace
+  description: Use kubectl to get really all items in the cluster or in a namespace
+  platforms:
+  - uri: https://github.com/grosser/kubectl-get-all/archive/refs/tags/v0.0.0.zip
+    sha256: b64cd5b25790c3862d72cba0bf6c14e371d342471850ae3f107f49fa7b568d63
+    # works for all platforms, workaround for https://github.com/kubernetes-sigs/krew/issues/847
+    selector:
+      matchExpressions:
+      - { key: "os", operator: "NotIn", values: [ "true" ] }
+    files:
+    - from: "*/kubectl-get-all"
+      to: "."
+    bin: "kubectl-get-all"

@@ -1,0 +1,72 @@
+#!/usr/bin/env ruby
+# use kubectl to get all resources
+
+def sh(command)
+  result = `#{command}`
+  abort "#{command}\n#{result}" unless $?.success?
+  result
+end
+
+def kubectl(command)
+  sh "kubectl #{command}"
+end
+
+def extract_option(*formats, required:, has_value: true)
+  formats.each do |option|
+    ARGV.each_with_index do |arg, i|
+      if arg == option # ["-p", "foo"]
+        ARGV.delete_at i
+        return has_value ? ARGV.delete_at(i) : true
+      end
+      if (value = arg[/^#{option}=(.*)/, 1]) # ["-p=foo"]
+        ARGV.delete_at i
+        return value
+      end
+    end
+  end
+  abort "No #{formats.join(" or ")} option given" if required
+end
+
+def discard_option(*formats, **kwargs)
+  extract_option(*formats, required: false, **kwargs)
+end
+
+def in_parallel(items, parallel:, &block)
+  return items.each(&block) if parallel == 0
+
+  threads = Array.new(parallel).map do
+    Thread.new do
+      while (item = items.shift)
+        yield item
+      end
+    end
+  end
+
+  # wait for all threads to finish and re-raise exception if they happen
+  loop do
+    break if threads.all? { |t| t.join(0) }
+    sleep 0.1
+  end
+end
+
+require 'json'
+require 'shellwords'
+
+if (namespace = extract_option "-n", "--namespace", required: false)
+  namespace = "-n #{namespace.shellescape}"
+end
+if (context = extract_option "--context", required: false)
+  context = "--context #{context.shellescape}"
+end
+parallel = Integer(extract_option("--parallel", required: false) || "10")
+
+# find apis
+apis = sh("kubectl api-resources --verbs=list #{context} #{"--namespaced" if namespace} -o name").split("\n")
+warn "loading #{apis.size} apis in #{parallel} threads ..."
+
+# get items
+mutex = Mutex.new
+in_parallel(apis, parallel: parallel) do |api|
+  result = kubectl("get #{api} #{context} #{namespace} --ignore-not-found --show-kind #{ARGV.shelljoin}")
+  mutex.synchronize { puts result unless result.empty? }
+end
