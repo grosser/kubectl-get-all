@@ -1,9 +1,19 @@
 #!/usr/bin/env ruby
 # use kubectl to get all resources
 
+require 'json'
+require 'shellwords'
+
 def sh(command)
-  result = `#{command}`
-  abort "#{command}\n#{result}" unless $?.success?
+  result = `#{command} 2>&1` # need to capture so parallel execution remains readable
+  success = $?.success?
+  result = "#{command}\n#{result}" unless success
+  [success, result]
+end
+
+def sh!(command)
+  success, result = sh command
+  abort result unless success
   result
 end
 
@@ -32,12 +42,14 @@ def discard_option(*formats, **kwargs)
 end
 
 def in_parallel(items, parallel:, &block)
-  return items.each(&block) if parallel == 0
+  return items.map(&block) if parallel == 0
 
+  results = []
+  items = items.each_with_index.to_a
   threads = Array.new(parallel).map do
     Thread.new do
       while (item = items.shift)
-        yield item
+        results[item[1]] = yield item[0]
       end
     end
   end
@@ -47,10 +59,9 @@ def in_parallel(items, parallel:, &block)
     break if threads.all? { |t| t.join(0) }
     sleep 0.1
   end
-end
 
-require 'json'
-require 'shellwords'
+  results
+end
 
 if (namespace = extract_option "-n", "--namespace", required: false)
   namespace = "-n #{namespace.shellescape}"
@@ -61,12 +72,22 @@ end
 parallel = Integer(extract_option("--parallel", required: false) || "10")
 
 # find apis
-apis = sh("kubectl api-resources --verbs=list #{context} #{"--namespaced" if namespace} -o name").split("\n")
+apis = sh!("kubectl api-resources --verbs=list #{context} #{"--namespaced" if namespace} -o name").split("\n")
 warn "loading #{apis.size} apis in #{parallel} threads ..."
 
 # get items
 mutex = Mutex.new
-in_parallel(apis, parallel: parallel) do |api|
-  result = kubectl("get #{api} #{context} #{namespace} --ignore-not-found --show-kind #{ARGV.shelljoin}")
-  mutex.synchronize { puts result unless result.empty? }
+successes = in_parallel(apis, parallel: parallel) do |api|
+  success, result = kubectl("get #{api} #{context} #{namespace} --ignore-not-found --show-kind #{ARGV.shelljoin}")
+  if !success || !result.empty?
+    mutex.synchronize do
+      if success
+        puts result
+      else
+        warn result
+      end
+    end
+  end
+  success
 end
+abort unless successes.all?
