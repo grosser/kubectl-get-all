@@ -1,4 +1,4 @@
-Use kubectl to get **really** all items in the cluster or in a namespace.
+Use kubectl to **really** get all items in the cluster or in a namespace, by iterating all apis.
 
 # Usage
 
@@ -14,12 +14,13 @@ persistentvolumeclaim/test-claim   Bound    pvc-123
 
 Get everything in a namespace:
 ```bash
-kubectl get-all -n foo'
-> ... lots of output
+kubectl get-all -n foo
+> ... 
 ```
 
 - Passes along all options like `-l` / `--as` / `--context` etc to `kubectl`
-- Supports parallel fetching of many apis with `--parallel 10` (default)
+- Parallel fetching `--parallel 10` (default)
+- Also show events with `--events`
 
 # Install
 
@@ -40,7 +41,7 @@ sudo chmod +x /usr/local/bin/kubectl-get_all
 
 ```bash
 git clone git@github.com:grosser/kubectl-get-all.git
-cd kubectl-get-all && ./kubectl-get-all
+cd kubectl-get-all && ./kubectl-get-all --context foo -n bar
 ```
 
 # Alternatives

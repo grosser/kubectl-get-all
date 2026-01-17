@@ -73,6 +73,9 @@ parallel = Integer(extract_option("--parallel", required: false) || "10")
 
 # find apis
 apis = sh!("kubectl api-resources --verbs=list #{context} #{"--namespaced" if namespace} -o name").split("\n")
+apis.delete "endpoints" # deprecated in favor of endpointslices which holds the same data
+apis.delete "events" # same as events.events.k8s.io
+apis.delete "events.events.k8s.io" unless ARGV.delete("--events")
 warn "loading #{apis.size} apis in #{parallel} threads ..."
 
 # get items
